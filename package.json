@@ -1,0 +1,22 @@
+{
+  "name": "motion-music",
+  "version": "1.0.0",
+  "description": "Code challenge to create music using body motion",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlejandroMI/motion-music.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlejandroMI/motion-music/issues"
+  },
+  "homepage": "https://github.com/AlejandroMI/motion-music#readme",
+  "dependencies": {
+    "three": "^0.117.1"
+  }
+}
