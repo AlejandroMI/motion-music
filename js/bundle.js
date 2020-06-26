@@ -1,34 +1,205 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var THREE = require("three");
 
-// Set scene, camera and renderer
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+window.addEventListener("load", init, false);
 
-var renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+let Colors = {
+  red: 0xf25346,
+  white: 0xd8d0d1,
+  brown: 0x59332e,
+  pink: 0xf5986e,
+  brownDark: 0x23190f,
+  blue: 0x68c3c0,
+};
 
-// Create the shape
-var geometry = new THREE.BoxGeometry();
-var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-var cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+function init() {
+  // set up the scene, the camera and the renderer
+  createScene();
 
-camera.position.z = 5;
+  // add the lights
+  createLights();
 
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera);
+  // add the objects
+  // createPlane();
+  createSea();
+  // createSky();
+
+  // start a loop that will update the objects' positions
+  // and render the scene on each frame
+  loop();
 }
-animate();
+
+var scene,
+  camera,
+  fieldOfView,
+  aspectRatio,
+  nearPlane,
+  farPlane,
+  HEIGHT,
+  WIDTH,
+  renderer,
+  container;
+
+function createScene() {
+  // Get the width and the height of the screen,
+  // use them to set up the aspect ratio of the camera
+  // and the size of the renderer.
+  HEIGHT = window.innerHeight;
+  WIDTH = window.innerWidth;
+
+  // Create the scene
+  scene = new THREE.Scene();
+
+  // Add a fog effect to the scene; same color as the
+  // background color used in the style sheet
+  scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
+
+  // Create the camera
+  aspectRatio = WIDTH / HEIGHT;
+  fieldOfView = 60;
+  nearPlane = 1;
+  farPlane = 10000;
+  camera = new THREE.PerspectiveCamera(
+    fieldOfView,
+    aspectRatio,
+    nearPlane,
+    farPlane
+  );
+
+  // Set the position of the camera
+  camera.position.x = 0;
+  camera.position.z = 200;
+  camera.position.y = 100;
+
+  // Create the renderer
+  renderer = new THREE.WebGLRenderer({
+    // Allow transparency to show the gradient background
+    // we defined in the CSS
+    alpha: true,
+
+    // Activate the anti-aliasing; this is less performant,
+    // but, as our project is low-poly based, it should be fine :)
+    antialias: true,
+  });
+
+  // Define the size of the renderer; in this case,
+  // it will fill the entire screen
+  renderer.setSize(WIDTH, HEIGHT);
+
+  // Enable shadow rendering
+  renderer.shadowMap.enabled = true;
+
+  // Add the DOM element of the renderer to the
+  // container we created in the HTML
+  container = document.getElementById("world");
+  container.appendChild(renderer.domElement);
+
+  // Listen to the screen: if the user resizes it
+  // we have to update the camera and the renderer size
+  window.addEventListener("resize", handleWindowResize, false);
+}
+
+var hemisphereLight, shadowLight;
+
+function createLights() {
+  // A hemisphere light is a gradient colored light;
+  // the first parameter is the sky color, the second parameter is the ground color,
+  // the third parameter is the intensity of the light
+  hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
+
+  // A directional light shines from a specific direction.
+  // It acts like the sun, that means that all the rays produced are parallel.
+  shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
+
+  // Set the direction of the light
+  shadowLight.position.set(150, 350, 350);
+
+  // Allow shadow casting
+  shadowLight.castShadow = true;
+
+  // define the visible area of the projected shadow
+  shadowLight.shadow.camera.left = -400;
+  shadowLight.shadow.camera.right = 400;
+  shadowLight.shadow.camera.top = 400;
+  shadowLight.shadow.camera.bottom = -400;
+  shadowLight.shadow.camera.near = 1;
+  shadowLight.shadow.camera.far = 1000;
+
+  // define the resolution of the shadow; the higher the better,
+  // but also the more expensive and less performant
+  shadowLight.shadow.mapSize.width = 2048;
+  shadowLight.shadow.mapSize.height = 2048;
+
+  // to activate the lights, just add them to the scene
+  scene.add(hemisphereLight);
+  scene.add(shadowLight);
+}
+
+function loop() {
+  // Rotate the propeller, the sea and the sky
+  // airplane.propeller.rotation.x += 0.3;
+  //sea.mesh.rotation.z += 0.005;
+  // sky.mesh.rotation.z += 0.01;
+
+  // render the scene
+  renderer.render(scene, camera);
+
+  // call the loop function again
+  requestAnimationFrame(loop);
+}
+
+//Objects
+
+Sea = function () {
+  // create the geometry (shape) of the cylinder;
+  // the parameters are:
+  // radius top, radius bottom, height, number of segments on the radius, number of segments vertically
+  var geom = new THREE.CylinderGeometry(600, 600, 800, 40, 10);
+
+  // rotate the geometry on the x axis
+  geom.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI / 2));
+
+  // create the material
+  var mat = new THREE.MeshPhongMaterial({
+    color: Colors.blue,
+    transparent: true,
+    opacity: 0.6,
+    shading: THREE.FlatShading,
+  });
+
+  // To create an object in Three.js, we have to create a mesh
+  // which is a combination of a geometry and some material
+  this.mesh = new THREE.Mesh(geom, mat);
+
+  // Allow the sea to receive shadows
+  this.mesh.receiveShadow = true;
+};
+
+// Instantiate the sea and add it to the scene:
+
+var sea;
+
+function createSea() {
+  sea = new Sea();
+
+  // push it a little bit at the bottom of the scene
+  sea.mesh.position.y = -600;
+
+  // add the mesh of the sea to the scene
+  scene.add(sea.mesh);
+}
+
+//Utilities
+
+//As the screen size can change, we need to update the renderer size and the camera aspect ratio
+function handleWindowResize() {
+  // update height and width of the renderer and the camera
+  HEIGHT = window.innerHeight;
+  WIDTH = window.innerWidth;
+  renderer.setSize(WIDTH, HEIGHT);
+  camera.aspect = WIDTH / HEIGHT;
+  camera.updateProjectionMatrix();
+}
 
 },{"three":2}],2:[function(require,module,exports){
 (function (global, factory) {

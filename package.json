@@ -18,5 +18,8 @@
   "homepage": "https://github.com/AlejandroMI/motion-music#readme",
   "dependencies": {
     "three": "^0.117.1"
+  },
+  "devDependencies": {
+    "watchify": "^3.11.1"
   }
 }
