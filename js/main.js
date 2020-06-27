@@ -3,12 +3,7 @@ var THREE = require("three");
 window.addEventListener("load", init, false);
 
 let Colors = {
-  red: 0xf25346,
-  white: 0xd8d0d1,
-  brown: 0x59332e,
-  pink: 0xf5986e,
-  brownDark: 0x23190f,
-  blue: 0x68c3c0,
+  white: 0xfaf9f9,
 };
 
 function init() {
@@ -19,12 +14,9 @@ function init() {
   createLights();
 
   // add the objects
-  // createPlane();
-  createSea();
-  // createSky();
+  // createWhatever();
+  createSomething();
 
-  // start a loop that will update the objects' positions
-  // and render the scene on each frame
   loop();
 }
 
@@ -48,10 +40,6 @@ function createScene() {
 
   // Create the scene
   scene = new THREE.Scene();
-
-  // Add a fog effect to the scene; same color as the
-  // background color used in the style sheet
-  scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
 
   // Create the camera
   aspectRatio = WIDTH / HEIGHT;
@@ -135,10 +123,7 @@ function createLights() {
 }
 
 function loop() {
-  // Rotate the propeller, the sea and the sky
-  // airplane.propeller.rotation.x += 0.3;
-  //sea.mesh.rotation.z += 0.005;
-  // sky.mesh.rotation.z += 0.01;
+  // Movements
 
   // render the scene
   renderer.render(scene, camera);
@@ -149,18 +134,13 @@ function loop() {
 
 //Objects
 
-Sea = function () {
-  // create the geometry (shape) of the cylinder;
-  // the parameters are:
-  // radius top, radius bottom, height, number of segments on the radius, number of segments vertically
-  var geom = new THREE.CylinderGeometry(600, 600, 800, 40, 10);
-
-  // rotate the geometry on the x axis
-  geom.applyMatrix(new THREE.Matrix4().makeRotationY(-Math.PI / 2));
+Something = function () {
+  // create the geometry (shape) of the something;
+  var geom = new THREE.SphereGeometry(30, 10, 10);
 
   // create the material
   var mat = new THREE.MeshPhongMaterial({
-    color: Colors.blue,
+    color: Colors.white,
     transparent: true,
     opacity: 0.6,
     shading: THREE.FlatShading,
@@ -170,22 +150,22 @@ Sea = function () {
   // which is a combination of a geometry and some material
   this.mesh = new THREE.Mesh(geom, mat);
 
-  // Allow the sea to receive shadows
+  // Allow to receive shadows
   this.mesh.receiveShadow = true;
 };
 
-// Instantiate the sea and add it to the scene:
+//Instantiate it and add it to the scene:
 
-var sea;
+var smth;
 
-function createSea() {
-  sea = new Sea();
+function createSomething() {
+  smth = new Something();
 
-  // push it a little bit at the bottom of the scene
-  sea.mesh.position.y = -600;
+  // move it in the scene
+  smth.mesh.position.y = 100;
 
-  // add the mesh of the sea to the scene
-  scene.add(sea.mesh);
+  // add the mesh of thing to the scene
+  scene.add(smth.mesh);
 }
 
 //Utilities
