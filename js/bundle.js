@@ -6,25 +6,10 @@ window.addEventListener("load", init, false);
 let Colors = {
   white: 0xfaf9f9,
   green: 0xbee3db,
+  peach: 0xffd69a,
 };
 
 window.addEventListener("load", init, false);
-
-function init() {
-  // set up the scene, the camera and the renderer
-  createScene();
-
-  // add the lights
-  createLights();
-
-  // add the objects
-  createBox();
-  createPlane();
-
-  // start a loop that will update the objects' positions
-  // and render the scene on each frame
-  loop();
-}
 
 let scene,
   camera,
@@ -34,12 +19,37 @@ let scene,
   farPlane,
   HEIGHT,
   WIDTH,
+  windowHalfX,
+  windowHalfY,
   renderer,
+  mousePos = { x: 0, y: 0 },
   container;
+
+function init() {
+  // listeners
+  document.addEventListener("mousemove", handleMouseMove, false);
+
+  // set up the scene, the camera and the renderer
+  createScene();
+
+  // add the lights
+  createLights();
+
+  // add the objects
+  createBox();
+  createHand();
+  createPlane();
+
+  // start a loop that will update the objects' positions
+  // and render the scene on each frame
+  loop();
+}
 
 function createScene() {
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
+  windowHalfX = WIDTH / 2;
+  windowHalfY = HEIGHT / 2;
 
   // Create the scene
   scene = new THREE.Scene();
@@ -64,7 +74,7 @@ function createScene() {
   );
   camera.position.x = 0;
   camera.position.y = 200;
-  camera.position.z = 300;
+  camera.position.z = 800;
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   // Add the DOM element of the renderer to the
@@ -112,7 +122,7 @@ function createLights() {
 //Objects
 let box;
 function createBox() {
-  boxGeometry = new THREE.BoxGeometry(150, 30, 60);
+  boxGeometry = new THREE.BoxGeometry(300, 60, 120);
 
   boxMaterial = new THREE.MeshStandardMaterial({
     color: Colors.green,
@@ -122,8 +132,38 @@ function createBox() {
   });
   box = new THREE.Mesh(boxGeometry, boxMaterial);
   box.castShadow = true;
-  box.receiveShadow = false;
+  box.receiveShadow = true;
   scene.add(box);
+}
+
+let hand;
+
+Hand = function () {
+  handGeometry = new THREE.BoxGeometry(60, 90, 10);
+
+  handMaterial = new THREE.MeshStandardMaterial({
+    color: Colors.peach,
+    roughness: 0.5,
+  });
+
+  this.group = new THREE.Mesh(handGeometry, handMaterial);
+  this.group.castShadow = true;
+  this.group.receiveShadow = false;
+};
+
+Hand.prototype.update = function (xTarget, yTarget) {
+  this.group.lookAt(new THREE.Vector3(0, 0, 0));
+  this.tPosX = rule3(xTarget, -200, 200, -250, 250);
+  this.tPosY = rule3(yTarget, -200, 200, 250, -250);
+
+  this.group.position.x += (this.tPosX - this.group.position.x) / 10;
+  this.group.position.y += (this.tPosY - this.group.position.y) / 10;
+};
+
+function createHand() {
+  hand = new Hand();
+  hand.group.position.z = 120;
+  scene.add(hand.group);
 }
 
 function createPlane() {
@@ -132,7 +172,7 @@ function createPlane() {
     opacity: 0.15,
   });
   const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-  plane.position.y = -30;
+  plane.position.y = -50;
   plane.position.x = 0;
   plane.position.z = 0;
   plane.rotation.x = (Math.PI / 180) * -90;
@@ -143,6 +183,9 @@ function createPlane() {
 function loop() {
   // render the scene
   renderer.render(scene, camera);
+  var xTarget = mousePos.x - windowHalfX;
+  var yTarget = mousePos.y - windowHalfY;
+  hand.update(xTarget, yTarget);
 
   // call the loop function again
   requestAnimationFrame(loop);
@@ -155,9 +198,24 @@ function handleWindowResize() {
   // update height and width of the renderer and the camera
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
+  windowHalfX = WIDTH / 2;
+  windowHalfY = HEIGHT / 2;
   renderer.setSize(WIDTH, HEIGHT);
   camera.aspect = WIDTH / HEIGHT;
   camera.updateProjectionMatrix();
+}
+
+function handleMouseMove(event) {
+  mousePos = { x: event.clientX, y: event.clientY };
+}
+
+function rule3(v, vmin, vmax, tmin, tmax) {
+  var nv = Math.max(Math.min(v, vmax), vmin);
+  var dv = vmax - vmin;
+  var pc = (nv - vmin) / dv;
+  var dt = tmax - tmin;
+  var tv = tmin + pc * dt;
+  return tv;
 }
 
 },{"three":2}],2:[function(require,module,exports){
