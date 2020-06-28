@@ -154,7 +154,7 @@ Hand = function () {
 Hand.prototype.update = function (xTarget, yTarget) {
   this.group.lookAt(new THREE.Vector3(0, 0, 0));
   this.tPosX = rule3(xTarget, -200, 200, -250, 250);
-  this.tPosY = rule3(yTarget, -200, 200, 250, -250);
+  this.tPosY = rule3(yTarget, -200, 200, 250, -10);
 
   this.group.position.x += (this.tPosX - this.group.position.x) / 10;
   this.group.position.y += (this.tPosY - this.group.position.y) / 10;
