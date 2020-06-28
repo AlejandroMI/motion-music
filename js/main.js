@@ -4,7 +4,10 @@ window.addEventListener("load", init, false);
 
 let Colors = {
   white: 0xfaf9f9,
+  green: 0xbee3db,
 };
+
+window.addEventListener("load", init, false);
 
 function init() {
   // set up the scene, the camera and the renderer
@@ -14,13 +17,15 @@ function init() {
   createLights();
 
   // add the objects
-  // createWhatever();
-  createSomething();
+  createBox();
+  createPlane();
 
+  // start a loop that will update the objects' positions
+  // and render the scene on each frame
   loop();
 }
 
-var scene,
+let scene,
   camera,
   fieldOfView,
   aspectRatio,
@@ -32,19 +37,23 @@ var scene,
   container;
 
 function createScene() {
-  // Get the width and the height of the screen,
-  // use them to set up the aspect ratio of the camera
-  // and the size of the renderer.
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
 
   // Create the scene
   scene = new THREE.Scene();
 
-  // Create the camera
+  // Create the renderer
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(WIDTH, HEIGHT);
+  renderer.setClearColor(0xebebeb, 0);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMapSoft = true;
+
   aspectRatio = WIDTH / HEIGHT;
   fieldOfView = 60;
-  nearPlane = 1;
+  nearPlane = 0.1;
   farPlane = 10000;
   camera = new THREE.PerspectiveCamera(
     fieldOfView,
@@ -52,29 +61,10 @@ function createScene() {
     nearPlane,
     farPlane
   );
-
-  // Set the position of the camera
   camera.position.x = 0;
-  camera.position.z = 200;
-  camera.position.y = 100;
-
-  // Create the renderer
-  renderer = new THREE.WebGLRenderer({
-    // Allow transparency to show the gradient background
-    // we defined in the CSS
-    alpha: true,
-
-    // Activate the anti-aliasing; this is less performant,
-    // but, as our project is low-poly based, it should be fine :)
-    antialias: true,
-  });
-
-  // Define the size of the renderer; in this case,
-  // it will fill the entire screen
-  renderer.setSize(WIDTH, HEIGHT);
-
-  // Enable shadow rendering
-  renderer.shadowMap.enabled = true;
+  camera.position.y = 200;
+  camera.position.z = 300;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   // Add the DOM element of the renderer to the
   // container we created in the HTML
@@ -86,86 +76,75 @@ function createScene() {
   window.addEventListener("resize", handleWindowResize, false);
 }
 
-var hemisphereLight, shadowLight;
+//Lights
 
+let hemisphereLight, shadowLight, light2, light3;
 function createLights() {
-  // A hemisphere light is a gradient colored light;
-  // the first parameter is the sky color, the second parameter is the ground color,
-  // the third parameter is the intensity of the light
-  hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
+  hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.5);
 
-  // A directional light shines from a specific direction.
-  // It acts like the sun, that means that all the rays produced are parallel.
-  shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
-
-  // Set the direction of the light
-  shadowLight.position.set(150, 350, 350);
-
-  // Allow shadow casting
+  shadowLight = new THREE.DirectionalLight(Colors.white, 0.4);
+  shadowLight.position.set(0, 450, 350);
   shadowLight.castShadow = true;
 
-  // define the visible area of the projected shadow
-  shadowLight.shadow.camera.left = -400;
-  shadowLight.shadow.camera.right = 400;
-  shadowLight.shadow.camera.top = 400;
-  shadowLight.shadow.camera.bottom = -400;
+  shadowLight.shadow.camera.left = -650;
+  shadowLight.shadow.camera.right = 650;
+  shadowLight.shadow.camera.top = 650;
+  shadowLight.shadow.camera.bottom = -650;
   shadowLight.shadow.camera.near = 1;
   shadowLight.shadow.camera.far = 1000;
 
-  // define the resolution of the shadow; the higher the better,
-  // but also the more expensive and less performant
-  shadowLight.shadow.mapSize.width = 2048;
-  shadowLight.shadow.mapSize.height = 2048;
+  shadowLight.shadow.mapSize.width = 4096;
+  shadowLight.shadow.mapSize.height = 4096;
 
-  // to activate the lights, just add them to the scene
+  light2 = new THREE.DirectionalLight(Colors.white, 0.25);
+  light2.position.set(-600, 350, 350);
+
+  light3 = new THREE.DirectionalLight(Colors.white, 0.15);
+  light3.position.set(0, -250, 300);
+
   scene.add(hemisphereLight);
   scene.add(shadowLight);
+  scene.add(light2);
+  scene.add(light3);
+}
+
+//Objects
+let box;
+function createBox() {
+  boxGeometry = new THREE.BoxGeometry(150, 30, 60);
+
+  boxMaterial = new THREE.MeshStandardMaterial({
+    color: Colors.green,
+    roughness: 0.61,
+    metalness: 0.21,
+    side: THREE.FrontSide,
+  });
+  box = new THREE.Mesh(boxGeometry, boxMaterial);
+  box.castShadow = true;
+  box.receiveShadow = false;
+  scene.add(box);
+}
+
+function createPlane() {
+  const planeGeometry = new THREE.PlaneBufferGeometry(2000, 2000);
+  const planeMaterial = new THREE.ShadowMaterial({
+    opacity: 0.15,
+  });
+  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  plane.position.y = -30;
+  plane.position.x = 0;
+  plane.position.z = 0;
+  plane.rotation.x = (Math.PI / 180) * -90;
+  plane.receiveShadow = true;
+  scene.add(plane);
 }
 
 function loop() {
-  // Movements
-
   // render the scene
   renderer.render(scene, camera);
 
   // call the loop function again
   requestAnimationFrame(loop);
-}
-
-//Objects
-
-Something = function () {
-  // create the geometry (shape) of the something;
-  var geom = new THREE.SphereGeometry(30, 10, 10);
-
-  // create the material
-  var mat = new THREE.MeshPhongMaterial({
-    color: Colors.white,
-    transparent: true,
-    opacity: 0.6,
-    shading: THREE.FlatShading,
-  });
-
-  // To create an object in Three.js, we have to create a mesh
-  // which is a combination of a geometry and some material
-  this.mesh = new THREE.Mesh(geom, mat);
-
-  // Allow to receive shadows
-  this.mesh.receiveShadow = true;
-};
-
-//Instantiate it and add it to the scene:
-
-var smth;
-
-function createSomething() {
-  smth = new Something();
-
-  // move it in the scene
-  smth.mesh.position.y = 100;
-
-  // add the mesh of thing to the scene
-  scene.add(smth.mesh);
 }
 
 //Utilities
