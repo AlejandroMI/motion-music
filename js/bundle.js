@@ -7,27 +7,37 @@ let Colors = {
   white: 0xfaf9f9,
   green: 0xbee3db,
   peach: 0xffd69a,
+  apricot: 0xffc59a,
 };
 
 window.addEventListener("load", init, false);
 
+// threejs
 let scene,
   camera,
   fieldOfView,
   aspectRatio,
   nearPlane,
   farPlane,
-  HEIGHT,
+  renderer,
+  container;
+
+//world
+let playing = false;
+
+// screen
+let HEIGHT,
   WIDTH,
   windowHalfX,
   windowHalfY,
-  renderer,
-  mousePos = { x: 0, y: 0 },
-  container;
+  mousePos = { x: 0, y: 0 };
 
 function init() {
   // listeners
   document.addEventListener("mousemove", handleMouseMove, false);
+  document.addEventListener("mousedown", handleMouseDown, false);
+  document.addEventListener("mouseup", handleMouseUp, false);
+  window.addEventListener("resize", handleWindowResize, false);
 
   // set up the scene, the camera and the renderer
   createScene();
@@ -81,10 +91,6 @@ function createScene() {
   // container we created in the HTML
   container = document.getElementById("world");
   container.appendChild(renderer.domElement);
-
-  // Listen to the screen: if the user resizes it
-  // we have to update the camera and the renderer size
-  window.addEventListener("resize", handleWindowResize, false);
 }
 
 //Lights
@@ -156,6 +162,10 @@ Hand.prototype.update = function (xTarget, yTarget) {
   this.tPosX = rule3(xTarget, -200, 200, -250, 250);
   this.tPosY = rule3(yTarget, -200, 200, 250, -10);
 
+  playing == true
+    ? this.group.material.color.setHex(Colors.apricot)
+    : this.group.material.color.setHex(Colors.peach);
+
   this.group.position.x += (this.tPosX - this.group.position.x) / 10;
   this.group.position.y += (this.tPosY - this.group.position.y) / 10;
 };
@@ -192,7 +202,6 @@ function loop() {
 }
 
 //Utilities
-
 //As the screen size can change, we need to update the renderer size and the camera aspect ratio
 function handleWindowResize() {
   // update height and width of the renderer and the camera
@@ -207,6 +216,13 @@ function handleWindowResize() {
 
 function handleMouseMove(event) {
   mousePos = { x: event.clientX, y: event.clientY };
+}
+
+function handleMouseDown(event) {
+  playing = true;
+}
+function handleMouseUp(event) {
+  playing = false;
 }
 
 function rule3(v, vmin, vmax, tmin, tmax) {
