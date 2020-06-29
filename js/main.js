@@ -200,6 +200,34 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
+//Theremin Audio
+let context = new AudioContext(),
+  oscillator = null,
+  minFrequency = 20,
+  maxFrequency = 2000;
+
+function play() {
+  oscillator = context.createOscillator();
+  oscillator.connect(context.destination);
+  oscillator.start(context.currentTime);
+  playing = true;
+}
+
+function stop() {
+  if (oscillator) {
+    oscillator.stop(context.currentTime);
+    oscillator.disconnect();
+  }
+  playing = false;
+}
+
+function changeFrequency(xTarget) {
+  if (playing) {
+    f = (xTarget / WIDTH) * maxFrequency + minFrequency;
+    oscillator.frequency.setTargetAtTime(f, context.currentTime, 0.01);
+  }
+}
+
 //Utilities
 //As the screen size can change, we need to update the renderer size and the camera aspect ratio
 function handleWindowResize() {
@@ -215,13 +243,14 @@ function handleWindowResize() {
 
 function handleMouseMove(event) {
   mousePos = { x: event.clientX, y: event.clientY };
+  changeFrequency(mousePos.x);
 }
 
 function handleMouseDown(event) {
-  playing = true;
+  play();
 }
 function handleMouseUp(event) {
-  playing = false;
+  stop();
 }
 
 function rule3(v, vmin, vmax, tmin, tmax) {
