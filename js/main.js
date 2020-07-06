@@ -196,6 +196,10 @@ function loop() {
   var yTarget = mousePos.y - windowHalfY;
   hand.update(xTarget, yTarget);
 
+  //theremin
+  changeFrequency(mousePos.x);
+  changeGain(mousePos.y);
+
   // call the loop function again
   requestAnimationFrame(loop);
 }
@@ -203,14 +207,22 @@ function loop() {
 //Theremin Audio
 let context = new AudioContext(),
   oscillator = null,
+  gainNode = context.createGain(),
   minFrequency = 20,
-  maxFrequency = 2000;
+  maxFrequency = 2000,
+  minGain = 0,
+  maxGain = 1;
+
+gainNode.connect(context.destination);
 
 function play() {
+  stop();
   oscillator = context.createOscillator();
-  oscillator.connect(context.destination);
+  oscillator.connect(gainNode);
   oscillator.start(context.currentTime);
   playing = true;
+  changeFrequency(mousePos.x);
+  changeGain(mousePos.y);
 }
 
 function stop() {
@@ -228,6 +240,11 @@ function changeFrequency(xTarget) {
   }
 }
 
+function changeGain(yTarget) {
+  g = 1 - (yTarget / HEIGHT) * maxGain + minGain;
+  gainNode.gain.setTargetAtTime(g, context.currentTime, 0.01);
+}
+
 //Utilities
 //As the screen size can change, we need to update the renderer size and the camera aspect ratio
 function handleWindowResize() {
@@ -243,7 +260,6 @@ function handleWindowResize() {
 
 function handleMouseMove(event) {
   mousePos = { x: event.clientX, y: event.clientY };
-  changeFrequency(mousePos.x);
 }
 
 function handleMouseDown(event) {
