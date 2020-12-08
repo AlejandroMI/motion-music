@@ -5,11 +5,39 @@
   top: 0;
   left: 0;
   background: #faf9f9;
+  overflow: hidden;
 }
 
 body {
   margin: 0;
+  font-family: "Montserrat Alternates", sans-serif;
+  color: #55596e;
 }
 canvas {
   display: block;
+}
+a {
+  color: #89b0ae;
+}
+#title {
+  font-weight: 900;
+  user-select: none;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+#subtitle {
+  font-weight: 100;
+  user-select: none;
+  text-align: center;
+  margin-top: 0;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0px;
+  text-align: center;
+  font-size: 12px;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
